@@ -99,9 +99,10 @@ deactivate Application
 如前面所示，如果程序不对数据进行修改，多次数据拷贝及用户态和内核态的切换都是冗余操作，为了降低拷贝次数，这就是Zero-Copy技术
 ## 2.2 实现方式
 零拷贝的实现方式包括: `mmap`、`sendfile`、`sendfile+DMA`、`splice`等
-### 2.2.1 mmap方式
+### 2.2.1 mmap+write方式
 * mmap是linux提供的一种内存映射文件的机制，实现了将内核缓冲区地址与用户缓冲区地址进行映射，从而达到内核缓冲区和用户缓冲区内存的共享
 * mmap减少了一次CPU拷贝，`磁盘缓冲区`->`内核缓冲区(mmap用户缓冲区)`->`套接字缓冲区`->`网卡`
+* Kafka 的索引文件使用的是 mmap + write 方式，数据文件使用的是 sendfile 方式
 ### 2.2.2 sendfile方式
 * sendfile是linux 2.1提供的系统调用，它建立了两个文件之间的传输通道
 * sendfile减少了一次CPU拷贝，`磁盘缓冲区`->`内核缓冲区`->`套接字缓冲区`->`网卡`,减少了2次空间切换(之前调用read+write 现在只调用sendfile)
