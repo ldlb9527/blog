@@ -119,5 +119,5 @@ drop retention POLICY "one_week" ON "mydb"
 >SELECT COUNT(<field_key>) FROM <measurement_name> [WHERE \<stuff>] [GROUP BY \<stuff>]
 > 注意：count()函数中使用field_key,而不能使用tag_key
 ```
-select count(A) from http_requests where status=200
+select count(A) from http_requests where status='200'
 ```
