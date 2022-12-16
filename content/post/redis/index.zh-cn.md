@@ -195,3 +195,35 @@ a
 ```
 上面的操作代表:等待列表中的元素，5s后如果没有新元素将返回null
 注意，你可以设置超时时间为0，表示永久等待元素，还可以指定多个列表，等待到元素则返回，返回值为键名和元素值
+***
+## 1.3 Sets
+* Set是唯一字符串的无序集合。你可以使用set表示角色的喜好列表，执行集合常见的交集、并集、差分  
+* Set的最大大小为 2^32-1（4294967295）个成员。
+比如存储用户`123`和`456`的收藏书籍id
+```shell
+> SADD user:123:favorites 347
+1
+> SADD user:123:favorites 561
+1
+> SADD user:123:favorites 742
+1
+> SADD user:456:favorites 561
+1
+```
+检查用户123是否喜欢书籍742和299
+```shell
+> SISMEMBER user:123:favorites 742
+1
+> SISMEMBER user:123:favorites 299
+0
+```
+用户`123`和`456`共同喜欢的书
+```shell
+> SINTER user:123:favorites user:456:favorites
+561
+```
+用户`123`喜欢多少本书
+```shell
+> SCARD user:123:favorites
+3
+```
