@@ -227,3 +227,69 @@ a
 > SCARD user:123:favorites
 3
 ```
+***
+## 1.4 Hashes
+将基本用户配置文件表示为哈希：
+```shell
+> HSET user:123 username martina firstName Martina lastName Elisa country GB
+4
+> HGET user:123 username
+martina
+> HGETALL user:123
+username
+martina
+firstName
+Martina
+lastName
+Elisa
+country
+GB
+```
+存储设备 777 对服务器执行 ping 操作、发出请求或发送错误的次数的存储计数器：
+```shell
+> HINCRBY device:777:stats pings 1
+1
+> HINCRBY device:777:stats pings 1
+2
+> HINCRBY device:777:stats pings 1
+3
+> HINCRBY device:777:stats errors 1
+1
+> HINCRBY device:777:stats requests 1
+1
+> HGET device:777:stats pings
+3
+> HMGET device:777:stats requests errors
+1
+1
+```
+## 1.5 Sorted sets
+* Redis 排序集是按关联分数排序的唯一字符串（成员）的集合。 当多个字符串具有相同的分数时，字符串将按字典顺序排序。
+> 排序集的一些用例包括：  
+> 排行榜。例如，您可以使用排序集轻松维护大型在线游戏中最高分的有序列表。  
+> 速率限制器。特别是，您可以使用排序集来构建滑动窗口速率限制器，以防止过多的 API 请求。
+
+随着玩家分数的变化更新实时排行榜：
+```shell
+> ZADD leaderboard:455 100 user:1
+1
+> ZADD leaderboard:455 75 user:2
+1
+> ZADD leaderboard:455 101 user:3
+1
+> ZADD leaderboard:455 15 user:4
+1
+> ZADD leaderboard:455 275 user:2
+0
+```
+最后的ZADD调用中更新了user:2的分数。  
+获取前 3 名玩家的分数：
+```shell
+> ZRANGE leaderboard:455 0 2 REV WITHSCORES
+user:2
+275
+user:3
+101
+user:1
+100
+```
