@@ -20,7 +20,7 @@ mermaid = true
 传输控制协议（TCP，Transmission Control Protocol）是一种面向连接的、可靠的、基于字节流的传输层通信协议
 * 面向连接：面向连接的协议要求正式发送数据之前需要通过三次握手建立一个逻辑连接，结束通信时也是通过有序的四次挥手来断开连接。
 * 基于字节流：TCP是一种字节流协议，没有固定的报文边界，这既是导致**粘包**的原因
-* 可靠：对每个包提供校验和、序列号解决了接收数据的乱序、重复问题、超时重传、流量控制、拥塞控制
+* 可靠：对每个包提供校验和，序列号解决了接收数据的乱序和重复问题，超时重传，流量控制，拥塞控制
 > **没有固定的报文边界** 是指假设调用2次write()函数往socket里依次写10字节、5字节,最终会以多少条报文发出去是未知的  
 > **1**.分为两条报文依次发出去10字节 和5字节数据  
 > **2**.两部分数据合并为15字节的一条报文发送  
@@ -30,24 +30,31 @@ mermaid = true
 ***
 ## 名词解释
 ![TCP段结构]( "TCP段结构")
-### SYN
+### SYN、ACK、FIN、URG、PSH、RST
+1. SYN
 * 同步标志,表示32位序列号栏是否有效。
 * 当SYN=1、ACK=0时时表示这是一个连接请求报文段。
 * 若同意建立连接，响应报文段中SYN=1、ACK=1，此时表示这是一个连接请求接受报文。
-* 所以SYN=1表示32位序列号栏有效，该报文是一个连接请求报文或连接请求接受报文。
-### ACK
+* 所以SYN=1表示32位序列号栏有效，该报文是一个连接请求报文或连接请求接受报文。  
+2. ACK
 * 确认标志，当ACK=1时32位确认号栏有效，ACK=0时表示32位确认号无效。
 * TCP规定，在TCP连接建立后所有传送的数据报文段ACK都必须设置为1
-### URG
+3. URG
 * 紧急标志，表示紧急指针域是否有效。
 * 紧急数据的起始点=序号，紧急数据的终止点=序号+紧急指针；
-### PSH
+4. PSH
 * 推标志，
-### FIN
+5. FIN
 * 当FIN=1时，表明此报文段的发送方的数据已经发送完毕，并要求释放连接
-### RST
+6. RST
 * 表示复位标志是否有效。用于复位相应的TCP连接
+>RST使用场景：  
+> 1.用来检测对端端口是否打开。发送SYN包给指定端口，回复了SYN+ACK表示正在监听端口。如果回复RST报文，说明端口未监听
+> 2.重置连接。客户端和服务器端3次握手建立连接，未传数据进行空闲状态，服务器突然断点重启，所有TCP连接都丢失了，客户端无感知。这时客户端向服务器端发送数据，服务器端无该连接的信息，
+> 回复RST给客户端，表示无法处理该消息，客户端收到后可进行重新连接。
 ***
+### 序列号seq、确认号ack
+* 
 ## 三次握手，四次挥手
 ### 三次握手示意图
 ```mermaid
@@ -55,10 +62,11 @@ sequenceDiagram
 Title: 三次握手示意图
 
 Note left of Client: CLOSE
+Note right of Server: LISTEN
 Client->>Server: SYN=1,seq=x
 Note left of Client: SYN_SENT
 
-Note right of Server: LISTEN
+
 Server->>Client: SYN=1,ACK=1,seq=y,ack=x+1
 Note right of Server: SYN_RCVD
 
@@ -73,9 +81,9 @@ Note right of Server: ESTABLISHED
 表示自己已经收到了客户端的x+1之前的所有报文，希望下次报文的序列号为x+1，此时服务器处于**SYN_RCVD**状态。
 * 第三次： 客户端收到SYN应答报文之后，会发送一个ACK报文，将服务器的序列号y+1作为ack的值，此时客户端处于**ESTABLISHED**状态，服务器收到ACK报文之后，也处于**ESTABLISHED**状态
 此时，建立连接成功，可以进行数据传输。
->第一次握手：SYN=1，初始序号seq=x，SYN=1的报文段不能携带数据，但要消耗掉一个序号  
+>第一次握手：SYN=1，初始序号seq=x，SYN=1的报文段不能携带数据，**但要消耗掉一个序号**  
 >   
->第三次握手：确认报文段ACK=1，确认号ack=y+1，序号seq=x+1（初始为seq=x，第二个报文段所以要+1），ACK报文段可以携带数据，不携带数据则不消耗序号
+>第三次握手：确认报文段ACK=1，确认号ack=y+1，序号seq=x+1（初始为seq=x，第二个报文段所以要+1），**ACK报文段可以携带数据，不携带数据则不消耗序号**
 ***
 ### 为什么需要三次握手？两次不行吗？
 
@@ -96,6 +104,7 @@ Client\Server->>Server\Client: FIN=1,seq=m
 Note left of Client\Server: FIN_WAIT1
 
 Server\Client->>Client\Server: ACK=1,seq=n,ack=m+1
+Note left of Client\Server: FIN_WAIT2
 Note right of Server\Client: CLOSE_WAIT
 
 Server\Client->>Client\Server: FIN=1,ACK=1,seq=w,ack=m+1
@@ -135,5 +144,15 @@ TCP粘包就是指发送方发送的若干包数据到达接收方时粘成了�
 ### 粘包问题解决
 粘包的本质是没有固定的报文边界。一般有三种分包的方式：
 * **固定长度的消息**。比如每个消息大小都为100字节，接受方每次读满100字节就认为是一个完整的消息。
-* **特殊字符作为边界**。
+* **特殊字符作为边界**。例如http协议：
+  ![http消息结构](http消息结构.png "http消息结构")
+1. 遇到第一个\r\n表示读取请求行完成
+2. 遇到\r\n表示读取请求头完成
+3. 读取body,如果设置了Content-Length请求头，根据大小直接读取同大小的数据作为body。
+如果没设置Content-Length请求头，当body小于2KB时，http自动追加Content-Length；当body大于2KB时，改为追加Transfer-Encoding: chunked请求头
+   ![http消息结构](chunk.png "http消息结构")
+   length传输的数据长度，CRLF是\r\n的简称，chunked data就是实际的传输数据，读取到长度为0的chunked data表示读取body完成
+>静态文件的上传和下载可以显示设置Content-Length，动态文件的传输采用chunk协议
 * **自定义消息结构**。
+***
+### 拥塞控制
