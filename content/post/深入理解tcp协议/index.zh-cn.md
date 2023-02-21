@@ -140,6 +140,89 @@ TCP粘包就是指发送方发送的若干包数据到达接收方时粘成了�
 ### 接受方粘包
 * TCP接收到数据包时，并不会马上交到应用层进行处理，TCP将接收到的数据包保存在接收缓存里接收方收到的数据会保存在缓存中，如果应用层提取数据不够快就会导致缓存中多条数据粘在一起
 >接受方在TCP所在层无法处理粘包
+### 粘包问题复现
+1. 用java socket复现粘包问题。  
+   Client代码如下：
+```java
+package com.ldlb.tcp;
+
+import java.io.*;
+import java.net.Socket;
+
+public class Client {
+    public static void main(String[] args) throws Exception {
+        Socket socket = new Socket("127.0.0.1", 10086);
+        OutputStream os = socket.getOutputStream();
+        new Thread(() -> {
+            for (int i = 0; i < 100; i++) {
+                try {
+                    String reqMessage = "你好啊";
+                    reqMessage = reqMessage + i;
+                    os.write(reqMessage.getBytes());
+                    System.out.println("已发送");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        Thread.sleep(100000);
+
+
+    }
+}
+```
+Server代码如下：
+```java
+package com.ldlb.tcp;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class Server {
+    public static void main(String[] args) throws Exception {
+        ServerSocket serverSocket = new ServerSocket(10086);
+        Socket socket = serverSocket.accept();
+        byte[] byteBuffer = new byte[50];
+        InputStream reader = socket.getInputStream();
+        new Thread(() -> {
+            int count = 0;
+            while (true) {
+                // 读
+                try {
+                    count = reader.read(byteBuffer);
+                    if (count > 0) {
+                        System.out.println("Client：" + new String(byteBuffer,0,count));
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+    }
+}
+```
+依次启动Server和Client,控制台会得到大概如下结果：
+```markdown
+Client：你好啊0
+Client：你好啊1
+Client：你好啊2
+Client：你好啊3
+Client：你好啊4
+Client：你好啊5
+Client：你好啊6
+Client：你好啊7
+Client：你好啊8
+Client：你好啊9你好啊10你好啊11你好啊12你好�
+Client：��13你好啊14你好啊15你好啊16你好啊17�
+Client：�好啊18你好啊19你好啊20你好啊21你好�
+```
+结果中出现的特殊符号是因为一个中文多个字节数据未读取完整，解析时乱码，属于半包问题，发生在数据头部或尾部。
+***
 
 ### 粘包问题解决
 粘包的本质是没有固定的报文边界。一般有三种分包的方式：
@@ -154,5 +237,6 @@ TCP粘包就是指发送方发送的若干包数据到达接收方时粘成了�
    length传输的数据长度，CRLF是\r\n的简称，chunked data就是实际的传输数据，读取到长度为0的chunked data表示读取body完成
 >静态文件的上传和下载可以显示设置Content-Length，动态文件的传输采用chunk协议
 * **自定义消息结构**。
-***
+
+### 流量控制
 ### 拥塞控制
