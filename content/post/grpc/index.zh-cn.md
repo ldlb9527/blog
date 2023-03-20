@@ -161,6 +161,7 @@ message UserEntity {
   int32 age = 2;
 }
 ```
+
 ***
 ### 引用其他 proto 文件
 ```protobuf
@@ -185,6 +186,38 @@ Options分为**file-level options**（只能出现在最顶层，不能在消息
 **1**.  java_package：指定生成类的包名，如果没有指定此选项，将由关键字package指定包名，只在生成java代码时有效  
 **2**.  java_multiple_files:如果为true，定义在最外层的message 、enum、service将作为单独的类存在   
 **3**.java_outer_classname:指定最外层class的类名，如果不指定，将会以文件名作为类名
- 
+### Demo
+```protobuf
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+service UserService {
+  rpc Query(QueryRequest) returns (Response) {}
+  rpc Delete(DeleteRequest) returns (Response) {}
+}
+
+message QueryRequest {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message DeleteRequest {
+  int32 id = 1;
+}
+
+message Response {
+  int32 err = 1;
+  string msg = 2;
+  google.protobuf.Any data = 3;
+}
+
+message User {
+  string name = 1;
+  int32 age = 2;
+}
+
+```
+* `protoc -I . ./user.proto --go_out=plugins=grpc:.`
 
 
