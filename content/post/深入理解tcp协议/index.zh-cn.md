@@ -2,7 +2,7 @@
 
 author = "旅店老板"
 title = "深入理解tcp协议"
-date = "2023-02-14"
+date = "2023-03-20"
 description = "深入理解tcp中的专业名词和基本原理"
 tags = [
 	"tcp",
@@ -10,6 +10,7 @@ tags = [
 categories = [
     "linux",
 ]
+draft = true
 series = [""]
 aliases = ["migrate-from-jekyl"]
 image = "tcp.png"
@@ -29,7 +30,7 @@ mermaid = true
 > 还有更多可能的排列组合
 ***
 ## 名词解释
-![TCP段结构]( "TCP段结构")
+![TCP段结构](TCP段结构.png "TCP段结构")
 ### SYN、ACK、FIN、URG、PSH、RST
 1. SYN
 * 同步标志,表示32位序列号栏是否有效。

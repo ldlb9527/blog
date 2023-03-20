@@ -5,14 +5,14 @@ title = "grpc基础"
 date = "2023-03-02                                                                                                                                                                                                                                                                                                                                            "
 description = "grpc基础学习"
 tags = [
-	"redis",
+	"grpc",
 ]
 categories = [
-    "redis",
+    "rpc",
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]
-image = "redis.png"
+image = "grpc.png"
 mermaid = true
 +++
 
