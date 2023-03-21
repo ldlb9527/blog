@@ -187,10 +187,12 @@ Options分为**file-level options**（只能出现在最顶层，不能在消息
 **2**.  java_multiple_files:如果为true，定义在最外层的message 、enum、service将作为单独的类存在   
 **3**.java_outer_classname:指定最外层class的类名，如果不指定，将会以文件名作为类名
 ### Demo
+* 创建user.proto文件，内容如下
 ```protobuf
 syntax = "proto3";
 
 import "google/protobuf/any.proto";
+option go_package = "./module";
 
 service UserService {
   rpc Query(QueryRequest) returns (Response) {}
@@ -216,8 +218,113 @@ message User {
   string name = 1;
   int32 age = 2;
 }
-
 ```
-* `protoc -I . ./user.proto --go_out=plugins=grpc:.`
+* user.proto同级目录下执行命令`protoc -I . ./user.proto --go_out=plugins=grpc:.`[protoc下载](https://github.com/protocolbuffers/protobuf/releases)，会在module目录下生成user.pb.go
+* 创建客户端./client/main.go,代码如下：
+```go
+package main
 
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"grpc-test/module"
+	"log"
+	"time"
+)
+
+func main() {
+	//建立链接
+	conn, err := grpc.Dial("127.0.0.1:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal("did not connect", err)
+	}
+	defer conn.Close()
+	client := module.NewUserServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3) //设定请求超时时间 3s
+	defer cancel()
+
+	queryResponse, _ := client.Query(ctx, &module.QueryRequest{Page: 1, Size: 2})
+	var sc []string
+	json.Unmarshal(queryResponse.Data.Value,&sc)
+	fmt.Println(sc)
+	fmt.Printf("%+v\n", queryResponse)
+
+	deleteResponse, _ := client.Delete(ctx, &module.DeleteRequest{Id: 100})
+	fmt.Printf("%+v\n", deleteResponse)
+}
+```
+* 创建服务端./server/main.go,代码如下：
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	anypb "google.golang.org/protobuf/types/known/anypb"
+	"grpc-test/module"
+	"log"
+	"net"
+	"strconv"
+)
+
+func main() {
+	lis, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatal("failed to listen", err)
+	}
+
+	//创建rpc服务
+	grpcServer := grpc.NewServer()
+	//为UserService服务注册业务实现 将UserService服务绑定到RPC服务器上
+	module.RegisterUserServiceServer(grpcServer,&UserServiceServerImpl{})
+	//注册反射服务， 这个服务是CLI使用的， 跟服务本身没有关系
+	reflection.Register(grpcServer)
+
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatal("faild to server,", err)
+	}
+}
+
+//UserServiceServerImpl  实现UserServiceServer接口
+type UserServiceServerImpl struct {
+}
+
+func (u UserServiceServerImpl) Query(ctx context.Context, request *module.QueryRequest) (*module.Response, error) {
+	sc:=[]string{"cat","dog","pg"}
+	bytes, _ := json.Marshal(sc)
+	any := anypb.Any{TypeUrl: "any", Value: bytes}
+	return &module.Response{Msg: "查询成功，page="+strconv.Itoa(int(request.GetPage()))+" size="+strconv.Itoa(int(request.GetSize())),Err: 200,Data: &any}, nil
+}
+
+func (u UserServiceServerImpl) Delete(ctx context.Context, request *module.DeleteRequest) (*module.Response, error) {
+	return &module.Response{Msg: "删除成功，Id="+strconv.Itoa(int(request.GetId())),Err: 200}, nil
+}
+```
+* 依次启动`./server/main.go`,`./client/main.go`,客户端控制台打印如下：
+```
+API server listening at: 127.0.0.1:62671
+[cat dog pig]
+err:200 msg:"查询成功，page=1 size=2" data:{type_url:"any" value:"[\"cat\",\"dog\",\"pig\"]"}
+err:200 msg:"删除成功，Id=100"
+```
+***
+* 在创建服务端时我们创建结构体UserServiceServerImpl实现了UserServiceServer接口，其实在./module/user.pb.go已经有一些默认实现
+```
+// UnimplementedUserServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedUserServiceServer struct {
+}
+
+func (*UnimplementedUserServiceServer) Query(context.Context, *QueryRequest) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
+}
+func (*UnimplementedUserServiceServer) Delete(context.Context, *DeleteRequest) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+```
 
