@@ -71,7 +71,7 @@ params:
             visitor:
             avatar:
             emoji:
-                - https://cdn.jsdelivr.net/gh/walinejs/emojis/weibo
+                - https://fastly.jsdelivr.net/gh/walinejs/emojis/weibo
             requiredMeta:
                 - name
                 - email
