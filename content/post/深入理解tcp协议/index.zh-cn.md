@@ -228,17 +228,28 @@ Client：�好啊18你好啊19你好啊20你好啊21你好�
 ### 粘包问题解决
 粘包的本质是没有固定的报文边界。一般有三种分包的方式：
 * **固定长度的消息**。比如每个消息大小都为100字节，接受方每次读满100字节就认为是一个完整的消息。
-* **特殊字符作为边界**。例如http协议：
-  ![http消息结构](http消息结构.png "http消息结构")
+* **特殊字符作为边界**。例如http协议：  
+
+![http消息结构](http消息结构.png "http消息结构")
+http请求消息格式由四部分组成：**请求行、请求头、请求空行、请求体**,http响应消息格式这样
 1. 遇到第一个\r\n表示读取请求行完成
 2. 遇到\r\n表示读取请求头完成
-3. 读取body,如果设置了Content-Length请求头，根据大小直接读取同大小的数据作为body。
-如果没设置Content-Length请求头，当body小于2KB时，http自动追加Content-Length；当body大于2KB时，改为追加Transfer-Encoding: chunked请求头
-   ![http消息结构](chunk.png "http消息结构")
-   length传输的数据长度，CRLF是\r\n的简称，chunked data就是实际的传输数据，读取到长度为0的chunked data表示读取body完成
->静态文件的上传和下载可以显示设置Content-Length，动态文件的传输采用chunk协议
-* **自定义消息结构**。
+3. 如何读取读取body,如果设置了Content-Length请求头，根据大小直接读取同大小的数据作为body。
+如果没设置Content-Length请求头，当body小于2KB时，http自动追加Content-Length；当body大于2KB时，改为追加Transfer-Encoding: chunked请求头  
 
+![chunk编码](chunk.png "chunk编码")
+   没设置Content-Length时，http会采用chunk编码的方式传输body，length表示传输的数据长度，CRLF是\r\n的简称，chunked data就是实际的传输数据，读取到长度为0的chunked data表示读取http的body完成
+>静态文件的上传和下载可以显示设置Content-Length，动态文件的传输采用chunk协议，HTTP1.1及以后才必须支持chunk编码模式
+
+>**Http协议版本历程:**  
+> Http/0.9:&nbsp;&nbsp;&nbsp;①仅用于传输小体积的Html文本;②无请求头和响应头；③仅支持Get方法  
+> 
+> Http/1.0：&nbsp;&nbsp;&nbsp;①支持多种类型数据的传输;②支持请求头和响应头；③增加支持了Head、Post方法；④增加了响应状态码、协议版本号  
+> 
+> Http/1.1：&nbsp;&nbsp;&nbsp;①增加了长连接；②增加了Cookie；③增加支持了Put、Delete等方法；④增加了chunk编码
+***
+* **自定义消息结构**。  
+......
 ### 流量控制
 ### 拥塞控制
 
