@@ -87,6 +87,9 @@ deactivate CPU
 
 deactivate Application
 ```
+**cpu+dma调用示意图如下：**
+
+![cpu+dma](CPU+DMA.drawio.png "cpu+dma")
 ***
 > **1.无论是仅CPU的方式还是CPU+DMA的方式，都存在多次冗余的数据拷贝及用户态和内核态的切换**  
 > **2.read()涉及2次空间切换、2次CPU拷贝(或1次DMA拷贝和1次CPU拷贝)**  
@@ -104,6 +107,10 @@ deactivate Application
 * mmap减少了一次CPU拷贝，`磁盘缓冲区`->`内核缓冲区(mmap用户缓冲区)`->`套接字缓冲区`->`网卡`
 * Kafka 的索引文件使用的是 mmap + write 方式，数据文件使用的是 sendfile 方式  
 ***
+**mmap+write调用示意图如下：** 
+
+![map+write](mmap+write.drawio.png "map+write")
+
 **mmap+write方式调用流程如下：**  
 1.用户调用mmap()，从用户态陷入内核态，将内核缓冲区映射到用户缓存区  
 2.DMA 控制器将数据从硬盘拷贝到内核缓冲区  
@@ -111,18 +118,28 @@ deactivate Application
 4.用户调用write()，尝试把文件数据写到内核里的套接字缓冲区，陷入内核态  
 5.CPU将内核缓冲区中的数据拷贝到的套接字缓冲区  
 6.DMA控制器将数据从套接字缓冲区拷贝到网卡完成数据传输  
-7.write() 返回，上下文从内核态切换回用户态  
+7.write() 返回，上下文从内核态切换回用户态
 ***
 ### 2.2.2 sendfile方式
 * sendfile是linux 2.1提供的系统调用，它建立了两个文件之间的传输通道
 * sendfile减少了一次CPU拷贝，`磁盘缓冲区`->`内核缓冲区`->`套接字缓冲区`->`网卡`,减少了2次空间切换(之前调用read+write 现在只调用sendfile)
-* sendfile减少了两次空间切换s，之前read()2次、write()2次，现在sendfile()2次
+* sendfile减少了两次空间切换，之前read()2次、write()2次，现在sendfile()2次
 * 该方式数据不经过用户缓冲区，无法修改
+
+**sendfile调用示意图如下：**
+
+![sendfile](sendfile.drawio.png "sendfile")
+***
 ### 2.2.3 sendfile+DMA方式
 * Linux 2.4内核对 sendfile系统调用进行优化，但是需要硬件DMA控制器的配合。
 * sendfile优化后可以将内核缓冲区对应的数据信息(文件描述符、地址偏移量等)记录到套接字缓冲区(skb)
 * DMA控制器根据套接字缓冲区的地址信息等将数据从内核缓冲区直接拷贝到网卡,在2.2.2的基础上再减少一次CPU拷贝，`磁盘缓冲区`->`内核缓冲区`->`网卡`
 * sendfile+DMA方式有2次空间切换、0次CPU拷贝、2次DMA拷贝,数据仍无法修改
+
+**sendfile调用示意图如下：**
+
+![sendfile+DMA](sendfile优化.drawio.png "sendfile+dma")
+***
 ### 2.2.4 splice方式
 * splice()系统调用是Linux 2.6引入的，其不需要硬件支持，并且不再限定于socket上，实现了两个普通文件之间的数据零拷贝。
 * splice()系统调用可以在内核缓冲区和socket缓冲区之间建立管道来传输数据，避免了两者之间的CPU拷贝操作。
