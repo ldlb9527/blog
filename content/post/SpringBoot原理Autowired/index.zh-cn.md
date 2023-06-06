@@ -22,10 +22,23 @@ mermaid = true
 * SpringBoot 2.2.13RELEASE的源码调试环境(该文章所使用的源码都来自该版本)  
   下载地址为：[https://github.com/spring-projects/spring-boot/tree/v2.2.13.RELEASE](https://github.com/spring-projects/spring-boot/tree/v2.2.13.RELEASE)
 ## SpringBoot启动流程图
-流程图如下所示：
-
-*
-*
+复习一下SpringBoot启动流程图如下所示：
+![SpringBoot启动流程](SpringBoot启动流程.drawio.png "SpringBoot启动流程")
+* **SpringApplication.run()**:启动流程的入口
+* **StopWatch.start()**:
+* **SpringApplicationRunListeners.starting()**:
+* **prepareEnviroment()**:
+* **printBanner()**:
+* **createApplicationContext()**:
+* **prepareContext()**:
+* **refreshContext()**:
+* **afterRefresh()**:
+* **StopWatch.stop()**:
+* **SpringApplicationRunListeners.started()**
+* **callRunners()**:
+* **SpringApplicationRunListeners.running()**:
+* **return context**
+***
 ***
 ## @Component和@Autowired的使用
 在测试项目中创建一个`service`和`controller`
