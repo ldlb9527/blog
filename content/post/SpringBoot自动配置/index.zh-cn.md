@@ -1,9 +1,9 @@
 +++
 
 author = "旅店老板"
-title = "SpringBoot一之自动配置"
+title = "SpringBoot原理(一):自动配置"
 date = "2023-05-22"
-description = "了解SpringBoot自动配置原理及其源码学习"
+description = "了解SpringBoot自动配置条件注解原理及其源码学习"
 tags = [
 	"SpringBoot",
 ]

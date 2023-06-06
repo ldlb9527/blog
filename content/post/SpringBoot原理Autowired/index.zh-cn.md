@@ -1,7 +1,7 @@
 +++
 
 author = "旅店老板"
-title = "SpringBoot原理(四):@Autowired"
+title = "SpringBoot原理(四):常用注解分析"
 date = "2023-06-06"
 description = "SpringBoot原理(四):@Autowired"
 tags = [
