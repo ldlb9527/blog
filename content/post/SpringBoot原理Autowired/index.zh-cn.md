@@ -5,10 +5,11 @@ title = "SpringBoot原理(四):常用注解分析"
 date = "2023-06-06"
 description = "SpringBoot原理(四):@Autowired"
 tags = [
-	"tcp",
+	"SpringBoot",
 ]
 categories = [
-    "linux",
+"java",
+"SpringBoot"
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]

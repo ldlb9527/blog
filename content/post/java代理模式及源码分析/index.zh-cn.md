@@ -5,10 +5,11 @@ title = "java中的代理模式及其源码分析"
 date = "2023-05-25"
 description = "关于jdk、cglib动态代理例子及其源码分析"
 tags = [
-	"tcp",
+	"SpringBoot",
 ]
 categories = [
-    "linux",
+"java",
+"SpringBoot"
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]

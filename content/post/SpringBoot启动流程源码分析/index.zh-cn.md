@@ -5,10 +5,11 @@ title = "SpringBoot原理(三):启动流程分析"
 date = "2023-05-27"
 description = "关于SpringBoot启动流程地详细源码分析"
 tags = [
-	"tcp",
+	"SpringBoot",
 ]
 categories = [
-    "linux",
+"java",
+"SpringBoot"
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]
