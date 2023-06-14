@@ -259,6 +259,18 @@ public class ClientsRegistrar implements ImportBeanDefinitionRegistrar, Resource
 
 * `ClientFactoryBean.class`的核心在于实现`FactoryBean`接口，其代码如下:
 ```java
+import cn.hutool.http.HttpUtil;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
+
+
 public class ClientFactoryBean implements FactoryBean<Object> {
 
     private Class<?> type;
@@ -292,15 +304,35 @@ public class ClientFactoryBean implements FactoryBean<Object> {
     @Override
     public Object getObject() throws Exception {
 
-        Object proxy = Proxy.newProxyInstance(ClientFactoryBean.class.getClassLoader(), new Class[]{type}, new InvocationHandler() {
-            @Override
-            public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-                System.out.println("发送http请求， "+method.getName());
-
-                return null;
+        Object proxy = Proxy.newProxyInstance(ClientFactoryBean.class.getClassLoader(), new Class[]{type}, (o, method, objects) -> {
+            RequestMapping methodMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+            RequestMethod[] methods = methodMapping.method();
+            if (methods.length == 0) {
+                methods = new RequestMethod[] { RequestMethod.GET };
             }
+            String name = methods[0].name().toLowerCase();
+            String path = methodMapping.path()[0];
+
+            Map<String, Object> queryMap = new HashMap<>();
+            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                RequestParam requestParam = RequestParam.class.cast(parameterAnnotations[i][0]);
+                queryMap.put(requestParam.value(),objects[i]);
+            }
+            
+            return request(name, url, path, queryMap);
         });
         return proxy;
+    }
+
+    private String request(String name, String url, String path, Map<String, Object> queryMap) {
+        if ("get".equals(name)) {
+            return HttpUtil.get(url + path, queryMap);
+        }else if ("post".equals(name)) {
+            return HttpUtil.post(url + path, queryMap);
+        }else {
+            throw new RuntimeException("Not Supported...");
+        }
     }
 
     @Override
@@ -314,21 +346,88 @@ public class ClientFactoryBean implements FactoryBean<Object> {
     }
 }
 ```
-* 代码比较简单，核心在于`getObject`方法返回一个代理对象
+* 代码比较简单，核心在于`getObject`方法返回一个代理对象 
+* 该类的属性为最开始注册`BeanDefinition`实例设置的值，创建对象时会通过`get`和`set`方法赋值
 * 简单说明一下`FactoryBean`接口的作用，`@Autowired`执行对应的逻辑时会找到对应的`BeanDefinition`实例，  
 
 我们在最开始注册的className为`@Client`所在类路径，值为`ClientFactoryBean`的`BeanDefinition`实例，会判断是否是`FactoryBean`的实现类，  
 
 如果是则执行它的`getObject`方法获取实例(一般像`@Component`注解的类就不是`FactoryBean`的实现类，因此直接实例化`BeanDefinition`实例包装的类)，    
 
-这也就是这里使用`@Autowired`没有直接实例化`ClientFactoryBean`的原因
+这也就是这里使用`@Autowired`没有直接实例化`ClientFactoryBean`的原因，而是实例化后调用`getObject`方法
+* 我们的jdk动态代理实现中，简单地处理了`@RequestMapping`和`@RequestParam`注解，其他暂不处理。
+* 最终通过`request`方法发送了一个http请求，网上随便找一个http工具类，实际这里我们使用的是`hutool`的HttpUtils，对应依赖为：
+```markdown
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.7.19</version>
+        </dependency>
+```
+* 实际上feign框架中解析`@RequestMapping`、`@RequestBody`等等注解都是使用springmvc的方法
 ***
 ## 测试
 上面我们已经完成了所有代码开发，下面进行测试。
+* 启动类上添加`@EnableClients`注解，代码如下：
+```java
+@SpringBootApplication
+@EnableClients
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class,args);
+    }
+}
+```
+* 创建对应远程服务接口并添加`@Client`注解,代码如下：
+```java
+@Client(url = "127.0.0.1:8080", name = "notify")
+public interface NotifyService {
 
-和@Client
+    @RequestMapping("/hello")
+    void sayHello();
 
+    @RequestMapping("/hi")
+    String sayHi(@RequestParam("name") String name, @RequestParam("age") Integer age);
+}
+```
+* 创建测试`controller`，代码如下：
+```java
+@RestController
+public class TestController {
+
+    @Autowired
+    private NotifyService notifyService;
+
+    @RequestMapping("/test")
+    public void test() {
+        notifyService.sayHello();
+        String result = notifyService.sayHi("张三", 15);
+        System.out.println("result: "+result);
+    }
+
+    @RequestMapping("/hello")
+    public void hello() {
+        System.out.println("hello hello hello");
+    }
+
+    @RequestMapping("/hi")
+    public String hi(@RequestParam("name") String name, @RequestParam("age") Integer age) {
+        System.out.println("hi hi hi  "+name+"  "+age);
+        return "请求成功";
+    }
+}
+```
+共创建了三个接口,`/test`接口模拟客服端，`/hi`、`/hello`接口模拟服务器端(虽然它们都在同一项目中)，启动项目访问`/test`接口控制台打印如下：
+```markdown
+hello hello hello
+hi hi hi  张三  15
+result: 请求成功
+```
+检查打印信息，符合我们的预期，通过自定义注解实现了feign的基本功能。
 ## 小结
-如果你对上诉问题感兴趣，请结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、
+如果你对`@Import`注解、`ImportBeanDefinitionRegistrar`接口、`FactoryBean`接口、`@Autowired`的原理不理解的话，可以结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、 
+[SpringBoot原理(二):Starter](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%BA%8Cstarter/) 、
 [SpringBoot原理(三):启动流程分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%89%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/) 、
-[SpringBoot原理(四):常用注解分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。
+[SpringBoot原理(四):常用注解分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。  
+
+
