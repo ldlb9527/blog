@@ -2,7 +2,7 @@
 
 author = "旅店老板"
 title = "Golang中channel的基本使用和原理学习"
-date = "2024-05-01                                                                                                                                                                                                                                                                                                                                            "
+date = "2024-05-01"                                                                                                                                                                                                                                                                                                                                            "
 description = "golang管道原理学习"
 tags = [
 	"golang","channel",
