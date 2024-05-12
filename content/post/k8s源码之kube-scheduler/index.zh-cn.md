@@ -11,7 +11,7 @@ categories = [
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]
-image = "golang.png"
+image = "k8s.jpg"
 mermaid = true
 +++
 ## Kubernetes组件

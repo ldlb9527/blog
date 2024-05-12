@@ -1,17 +1,17 @@
 +++
 author = "旅店老板"
-title = "服务网格Istio"
+title = "k8s源码学习之kube-apiserver"
 date = "2024-03-04"
-description = "Istio"
+description = "k8s源码学习之kube-apiserver"
 tags = [
-	"istio",
+	"k8s",
 ]
 categories = [
-    "istio",
+    "k8s",
 ]
 series = [""]
 aliases = ["migrate-from-jekyl"]
-image = "golang.png"
+image = "k8s.jpg"
 mermaid = true
 +++
 ## Kubernetes组件
