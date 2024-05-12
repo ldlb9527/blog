@@ -2,7 +2,7 @@
 
 author = "旅店老板"
 title = "Istio原理"
-date = "2023-05-02"
+date = "2023-02-02"
 description = "探索Istio的原理"
 tags = [
 	"istio",
