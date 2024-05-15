@@ -1,7 +1,7 @@
 +++
 
 author = "旅店老板"
-title = "ebpf maps通信"
+title = "eBPF Maps"
 date = "2024-05-04"
 description = "介绍eBPF map的种类，用一个示例展示ebpf程序如何通过eBPF map进行内核态和用户态通信"
 tags = [

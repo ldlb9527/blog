@@ -1,9 +1,9 @@
 +++
 
 author = "旅店老板"
-title = "认识ebpf"
+title = "初识eBPF"
 date = "2024-05-03"
-description = "介绍bbpf的基础知识,用一个eBPF的HelloWorld程序展开说明"
+description = "介绍eBPF的基础知识,用一个eBPF的HelloWorld程序展开说明"
 tags = [
 	"ebpf",
 ]
