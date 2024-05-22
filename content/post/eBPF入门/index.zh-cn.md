@@ -29,6 +29,10 @@ eBPF程序主要由两部分构成：内核态部分和用户态部分。内核�
 apt install clang llvm libelf1 libelf-dev zlib1g-dev
 ```
 `LLVM`和`Clang`是编译eBPF程序所需要的依赖环境。
+```shell
+apt install -y gcc-multilib
+```
+解决`fatal error: 'asm/types.h' file not found`问题，
 
 ```shell
 wget https://github.com/eunomia-bpf/eunomia-bpf/releases/latest/download/ecc && chmod +x ./ecc && cp ecc /usr/bin/
