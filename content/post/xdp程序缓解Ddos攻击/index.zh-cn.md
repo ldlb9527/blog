@@ -52,7 +52,8 @@ enum xdp_action {
 * **XDP_PASS**:允许报文上送到内核网络栈，同时处理该报文的CPU会分配并填充一个skb，将其传递到内核协议栈
 
 ***
-## xdp程序开发
+## 以太网帧
+本节回顾以太网帧的相关知识,为xdp程序开发做一些准备。
 ```c
 SEC("xdp")
 int xdp_hello(struct xdp_md *ctx) {
@@ -83,6 +84,31 @@ struct xdp_md {
 >当数据帧到达网卡时，在物理层上网卡要先去掉前导同步码和帧开始定界符，然后对帧进行CRC检验，如果帧校验和错，就丢弃此帧。校验和为4字节,值为16进制反码求和，相对于md5是很粗糙的计算，因此在网络协议栈每层都会计算自己的校验和。
 
 当帧类型为Ipv4时,载荷就是一个IP数据报。IP数据报由IP报头和IP载荷构成。
+***
+## xdp程序实现
+①初始化一个名为`xdp_parse.c`的文件,内容为：
+```c
+//go:build ignore
+#include <linux/bpf.h>
+#include <linux/if_ether.h>
+#include <linux/ip.h>
+#include <bpf/bpf_helpers.h>
+#include <bpf/bpf_endian.h>
+
+SEC("xdp")
+int xdp_parse_func(struct xdp_md *ctx) {
+    void *data_end = (void *) (long) ctx->data_end;
+    void *data = (void *) (long) ctx->data;
+    struct ethhdr *eth;
+    struct iphdr *iph;
+    __u64 nh_off = sizeof(*eth);
+    
+    return XDP_PASS;
+}
+
+char _license[] SEC("license") = "GPL";
+```
+代码中我们获取了以太网帧的起始`data`和结束地址`data_end`,申明了变量eth,它是指向以太网头部ethhdr的指针,
 
 
 
