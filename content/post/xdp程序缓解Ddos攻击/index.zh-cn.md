@@ -108,9 +108,37 @@ int xdp_parse_func(struct xdp_md *ctx) {
 
 char _license[] SEC("license") = "GPL";
 ```
-代码中我们获取了以太网帧的起始`data`和结束地址`data_end`,申明了变量eth,它是指向以太网头部ethhdr的指针,
+代码中我们获取了以太网帧的起始`data`和结束地址`data_end`,申明了变量eth,它是指向以太网头部ethhdr的指针;申明了变量iph,它是指向ip协议头的指针;
+申明了变量nh_off,表示以太网头部的内存大小,单位是字节。  
 
+```c
+    eth = data;
 
+    if (data + nh_off > data_end) {
+        return XDP_PASS;
+    }
+```
+添加如上代码,eth指向数据起始地址,`data + nh_off > data_end`数据起始地址加上偏移量判断eth是否内存访问越界,这在xdp程序中是必不可少的,
+当将xdp程序加载到内核中如果没有越界检查,内核将拒绝执行。   
+
+接着:
+```c
+    __u16 eth_type = eth->h_proto;
+    if (eth_type != bpf_ntohs(ETH_P_IP)) {
+        return XDP_PASS;
+    }
+```
+获取了以太网帧的类型,上一节中我们知道类型的内存大小和有可能的值,这里我们只处理ip数据报,`bpf_ntohs`的作用是将网络字节序转为主机字节序。
+
+接着获取ip头中的源ip地址:
+```c
+    if (data + nh_off + sizeof(*iph) > data_end) {
+        return XDP_PASS;
+    }
+
+    iph = data + nh_off;
+    unsigned int sip = iph->saddr;
+```
 
 
 
