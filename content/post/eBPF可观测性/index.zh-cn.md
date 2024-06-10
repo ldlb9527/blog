@@ -13,7 +13,7 @@ categories = [
      "uprobe",
 ]
 series = [""]
-aliases = ["migrate-from-jekyl"]
+aliases = ["ebpf-uprobe-log"]
 image = "cilium.png"
 mermaid = true
 +++
