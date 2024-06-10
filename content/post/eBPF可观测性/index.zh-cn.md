@@ -149,72 +149,8 @@ int uprobe_return(struct pt_regs *ctx) {
 > 这里的函数名称可以是一个抽象概念。两个条件的目的是为了获取可执行文件符号表中函数符号的地址。这个地址我们可以加上一定的偏移量，因此uprobe探针可以动态插入到用户程序的任意位置
 ***
 
-### 用户态程序开发态程序开发
-eth_type = eth->h_proto;
-    if (eth_type != bpf_ntohs(ETH_P_IP)) {
-        return XDP_PASS;
-    }
-```
-获取了以太网帧的类型,上一节中我们知道类型的内存大小和有可能的值,这里我们只处理ip数据报,`bpf_ntohs`的作用是将网络字节序转为主机字节序。
-
-接着获取ip头中的源ip地址:
-```c
-    if (data + nh_off + sizeof(*iph) > data_end) {
-        return XDP_PASS;
-    }
-
-    iph = data + nh_off;
-    unsigned int sip = iph->saddr;
-```
-接着我们申明一个ebpf map,如下:
-```c
-#define MAX_MAP_ENTRIES 16
-struct {
-    __uint(type, BPF_MAP_TYPE_LRU_HASH);
-    __uint(max_entries, MAX_MAP_ENTRIES);
-    __type(key, __u32); // source IPv4 address
-    __type(value, __u32); // packet count
-} xdp_stats_map SEC(".maps");
-```
-这个map是`BPF_MAP_TYPE_LRU_HASH`类型,key存储源ip, value存储packet计数。继续在程序中添加代码:
-```c
-    unsigned int sip = iph->saddr;
-
-    __u32 *count = bpf_map_lookup_elem(&xdp_stats_map, &sip);
-    if (count) {
-        (*count) += 1;
-    } else {
-        __u32 init_pkt_count = 1;
-        bpf_map_update_elem(&xdp_stats_map, &sip, &init_pkt_count, BPF_ANY);
-    }
-
-
-    return XDP_PASS;
-```
-`bpf_map_lookup_elem`是ebpf中提供的辅助函数，用户获取映射存储map的key的值value,不存在时则返回NULL。上述代码的逻辑就是获取ip的统计次数,有则计数加1,没有则设置为1。  
-
-再创建一个ebpf map,结构与上面的一样，存储ip黑订单
-```c
-struct {
-    __uint(type, BPF_MAP_TYPE_LRU_HASH);
-    __uint(max_entries, MAX_MAP_ENTRIES);
-    __type(key, __u32);
-    __type(value, __u32);
-} xdp_black_list_map SEC(".maps");
-```
-增加ip黑名单检查代码:
-```c
-    __u32 *val = bpf_map_lookup_elem(&xdp_black_list_map, &sip);
-    if (val) {
-        return XDP_DROP
-    }
-    
-    return XDP_PASS;
-```
-以上就是xdp程序内核态的全部,它的作用就是解析以太网帧的ip并统计计数;并检查ip是否在黑名单中，如果在则在网络堆栈的入口处(创建skb之前)丢掉帧。
-
-
-xdp的用户态程序我们采用golang实现,基本库使用`github.com/cilium/ebpf`,github地址为  [https://github.com/cilium/ebpf](https://github.com/cilium/ebpf)  
+### 用户态程序开发
+基本库使用`github.com/cilium/ebpf`,github地址为  [https://github.com/cilium/ebpf](https://github.com/cilium/ebpf)  
 
 golang代码初始结构如下:
 ```go
@@ -236,7 +172,7 @@ import (
 	"time"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go bpf xdp_parse.c
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 -type data_t bpf uprobe_kernel.c -- -I./headers
 
 func main() {
 	
