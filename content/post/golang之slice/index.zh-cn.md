@@ -14,7 +14,8 @@ aliases = ["golang-slice"]
 image = "golang.png"
 mermaid = true
 +++
-##创建slice
+
+## 创建slice
 
 ```go
 	list1 := make([]int, 0)
@@ -35,7 +36,7 @@ type slice struct {
 ```
 该结构体位于`runtime/slice.go`中，`array`是指向数组的指针, `len`表示切片的长度, `cap`表示切片的容量。 对应的创建函数`makeslice`也在该文件中
 
-##截取slice
+## 截取slice
 ```go
 	arr := []int{1,2,3,4,5}
 	fmt.Println(arr[1:4])//[2,3,4]
