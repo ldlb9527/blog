@@ -14,7 +14,6 @@ aliases = ["golang-slice"]
 image = "golang.png"
 mermaid = true
 +++
-
 ##创建slice
 
 ```go
