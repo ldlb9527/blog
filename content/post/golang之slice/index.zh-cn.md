@@ -2,7 +2,7 @@
 author = "旅店老板"
 title = "Golang中slice的基本原理"
 date = "2024-05-02"
-description = "golang中slice的基本原理"
+description = "golang中slice的基本原理,源码来源于go1.22.2"
 tags = [
 	"golang","slice",
 ]
@@ -15,7 +15,6 @@ image = "golang.png"
 mermaid = true
 +++
 
-本文源码来源于go1.22.2
 ##创建slice
 
 ```go
