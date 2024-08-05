@@ -3,7 +3,7 @@
 author = "旅店老板"
 title = "OpenTelemetry实践"
 date = "2024-08-04"
-description = "了解OpenTelemetry如何实践，traces、metrics和logs数据如何产生相关性"
+description = "了解OpenTelemetry如何使用，traces、metrics和logs数据如何产生相关性"
 tags = [
 	"OpenTelemetry"
 ]
