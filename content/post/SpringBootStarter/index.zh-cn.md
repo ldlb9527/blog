@@ -32,7 +32,7 @@ public class RabbitHealthContributorAutoConfiguration {
     
 }
 ```
-省略了大部分代码，剩余一个条件注解`@ConditionalOnClass`，如不了解条件注解请阅读[SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) ，该注解表示
+省略了大部分代码，剩余一个条件注解`@ConditionalOnClass`，如不了解条件注解请阅读[SpringBoot原理(一):自动配置](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) ，该注解表示
 RabbitTemplate这个类存在时自动注入`RabbitHealthContributorAutoConfiguration`实例。  
 
 看到这里有些同学可能会有疑惑，既然该类可能不存在，直接使用`RabbitTemplate.class`，并使用`import`关键词导入的类路径不会爆红吗？打包项目时不会报错吗？  
@@ -182,7 +182,7 @@ public @interface EnableConfigurationProperties {
 }
 ```
 该注解上有一个重要注解`@Import(EnableConfigurationPropertiesRegistrar.class)`，对于这种代码是否有些熟悉呢，如果你详细了解
-[SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/)中`@SpringBootApplication`注解
+[SpringBoot原理(一):自动配置](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/)中`@SpringBootApplication`注解
 那部分。  
 
 `@Import`导入的类`EnableConfigurationPropertiesRegistrar`的源码为：
@@ -226,9 +226,9 @@ class EnableConfigurationPropertiesRegistrar implements ImportBeanDefinitionRegi
 通过上面的介绍我们了解了Starter特性的原理，但我们可能对两种不同的后置处理器`BeanFactoryPostProcessor`和`BeanPostProcessor`在SpirngBoot启动过程中的调用时机，
 不了解一个注解(`@Component`、`@bean`等等）标识的类何时注册成`BeanDefinition`实例，何时将`BeanDefinition`实例变为真正的bean。  
 
-如果你对上诉问题感兴趣，请结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、
- [SpringBoot原理(三):启动流程分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%89%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/) 、
- [SpringBoot原理(四):常用注解分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。
+如果你对上诉问题感兴趣，请结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、
+ [SpringBoot原理(三):启动流程分析](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%89%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/) 、
+ [SpringBoot原理(四):常用注解分析](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。
 
 
 

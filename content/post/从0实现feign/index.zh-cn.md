@@ -19,7 +19,7 @@ mermaid = true
 +++
 ## 开始之前
 * 创建一个SpringBoot的基础项目，用于代码测试。
-* 熟悉动态代理的原理或已阅读 [java中的代理模式及其源码分析](http://ldlb.site/p/java%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%85%B6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/)  
+* 熟悉动态代理的原理或已阅读 [java中的代理模式及其源码分析](https://ldlb.site/p/java%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%85%B6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/)  
 ## @EnableFeignClients和@FeignClient
 熟悉SpringBoot的小伙伴对`@EnableFeignClients`和`@FeignClient`这两个注解不会陌生，前者使用在启动类上标志开启Feign,后者使用在接口上，最终实现rpc调用。  
 
@@ -425,10 +425,10 @@ result: 请求成功
 ```
 检查打印信息，符合我们的预期，通过自定义注解实现了feign的基本功能。
 ## 小结
-* 如果你对`@Import`注解、`ImportBeanDefinitionRegistrar`接口、`FactoryBean`接口、`@Autowired`的原理不理解的话，可以结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、 
-[SpringBoot原理(二):Starter](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%BA%8Cstarter/) 、
-[SpringBoot原理(三):启动流程分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%89%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/) 、
-[SpringBoot原理(四):常用注解分析](http://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。  
+* 如果你对`@Import`注解、`ImportBeanDefinitionRegistrar`接口、`FactoryBean`接口、`@Autowired`的原理不理解的话，可以结合SpringBoot的源码和 [SpringBoot原理(一):自动配置](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%80%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/) 、 
+[SpringBoot原理(二):Starter](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%BA%8Cstarter/) 、
+[SpringBoot原理(三):启动流程分析](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E4%B8%89%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/) 、
+[SpringBoot原理(四):常用注解分析](https://ldlb.site/p/springboot%E5%8E%9F%E7%90%86%E5%9B%9B%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3%E5%88%86%E6%9E%90/) 进行调试学习。  
 
 * 是否能用cglib动态代理实现呢？
 * 是否了解@RequestParam、@RequestBody、@RequestHeader等注解在SpringBoot中如何解析，启动时路由如何注册？（这与springmvc密切相关）
