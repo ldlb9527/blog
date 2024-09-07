@@ -22,13 +22,13 @@ mermaid = true
 ![TLS发展史](TLS.png "TLS发展史")
 如上则是SSL协议到TLS协议的发展历史,本文详细对其中TLS1.2的原理进行分析。  
 
-TLS1.2全称`The Transport Layer Security Protocol Version 1.2`。传输层安全协议版本1.2,因此TLS1.2也是基于TCP/IP的应用层协议。
+TLS1.2全称**The Transport Layer Security Protocol Version 1.2**。传输层安全协议版本1.2,因此TLS1.2也是基于TCP/IP的应用层协议。
 
 该协议允许客户机/服务器应用程序以防止窃听、篡改或消息伪造的方式进行通信。  
 
 下文中TLS1.2简称TLS。
 
-[RFC5246](https://datatracker.ietf.org/doc/html/rfc5246)中定义了TLS1.2协议标准的详细规范。
+[**RFC5246**](https://datatracker.ietf.org/doc/html/rfc5246)中定义了TLS1.2协议标准的详细规范。
 ***
 ## 协议内容
 TLS1.2协议由两层组成:**TLS记录协议**和**使用TLS记录协议的协议**。记录协议定义了通信的数据结构(记录类型和长度等)，使用TLS记录协议的协议有四个:
