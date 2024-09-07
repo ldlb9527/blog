@@ -157,12 +157,72 @@ SessionID的实际内容由服务器定义。由于SessionID是在没有加密�
 * **cipher_suites**:密码套件列表,包含客户机支持的密码算法组合，按照客户端的首选项（首选项优先）排列。每个密码套件定义一个密钥交换算法、一个批量加密算法（包括密钥长度）、一个MAC算法和一个PRF。  
 握手期间服务端会按客户端提供的优先级选择一个支持的密码套件,如客户端的密码套件列表都不支持则返回一个fatal警报并断开连接。  
 
-* **compression_methods**：是否启用压缩算法, 若服务端支持启用后会产生安全漏洞,此压缩特性已在TLS1.3删除,该漏洞产生原理可查看[https://en.wikipedia.org/wiki/CRIME](https://en.wikipedia.org/wiki/CRIME)
+* **compression_methods**：压缩算法列表, 若服务端支持启用后会产生安全漏洞,此压缩特性已在TLS1.3删除,该漏洞产生原理可查看[https://en.wikipedia.org/wiki/CRIME](https://en.wikipedia.org/wiki/CRIME)
 
 
-* **extensions**：扩展。这里不进行说明
+* **extensions**：扩展。这里不进行说明  
+
+`ClientHello`消息会携带**客户端支持的最大版本client_version**、**会话标识符SessionID**(来源于之前的连接,首次连接为空,服务端支持会重用之前连接的安全参数,避免并发连接产生大量耗时)、**随机数random**、**密码套件列表cipher_suites**。  
+发送`ClientHello`消息后，客户端等待`ServerHello`消息。服务器返回的任何握手消息（HelloRequest除外）都被视为致命错误,客户端响应fatal警报。
 ***
 #### ServerHello
+数据结构为:
+```c
+struct {
+    ProtocolVersion server_version;
+    Random random;
+    SessionID session_id;
+    CipherSuite cipher_suite;
+    CompressionMethod compression_method;
+    select (extensions_present) {
+        case false:
+            struct {};
+        case true:
+            Extension extensions<0..2^16-1>;
+    };
+} ServerHello;
+```
+* **server_version**:此字段将包含客户端hello中客户端建议的较低版本和服务器支持的最高版本。  
+
+
+* **random**:随机数，与ClientHello中的格式一样，此结构由服务器生成必须独立于ClientHello.random生成  
+
+
+* **session_id**:会话标识符  
+
+
+>如果ClientHello.session_id非空，服务器将在其会话缓存中查找匹配项。如果找到匹配项，并且服务器愿意使用指定的会话状态建立新连接，则服务器将使用客户端提供的相同值进行响应。这表示会话已恢复，并指示各方必须直接进入已完成的消息。  
+> 
+> 如果会话恢复，则必须使用最初与之协商的密码套件恢复会话。请注意，即使服务器以前提供了会话id，也不要求服务器恢复任何会话。客户端必须准备在任何握手过程中进行完整协商，包括协商新的密码套件。
+> 
+> 否则，此字段将包含标识新会话的不同值。服务器可能会返回一个空会话id，以指示该会话不会被缓存，因此无法恢复。
+* **cipher_suite**:服务端从ClientHello.cipher_suites中的列表中选择的单个密码套件。如果要恢复会话，此字段是之前会话选择的值。  
+
+
+* **compression_method**:服务端从ClientHello.compressions列表中选择的单一压缩算法。如果要恢复会话，此字段是之前会话选择的值。  
+
+
+* **extensions**：扩展列表。只有客户端提供的扩展才能出现在服务器的列表中。如果客户端在ServerHello中接收到扩展类型，而它在关联的ClientHello中没有请求该扩展类型，则它必须使用`unsupported_extension`fatal警报中止握手。  
+
+
+***
+#### Certificate
+`Certificate`消息是可选项,此消息将始终紧跟在`ServerHello`消息之后。  
+
+每当约定的密钥交换方法(即选择的密码套件cipher_suite中包含的算法)使用证书进行身份验证时，服务器必须发送证书消息,`DH_anon`除外。  
+
+数据结构如下:
+```c
+struct {
+    ASN.1Cert certificate_list<0..2^24-1>;
+} Certificate;
+```
+* certificate_list: 证书列表(证书链)，第一位是服务器证书，下列证书必须直接证明其前面的证书(接着是中间证书，最后是根证书)。 服务端发送证书的规则:
+  * 证书类型必须为X.509v3,除非另有明确协商（例如**TLSPGP**）。
+  * ...
+>可以省略根证书,因为验证证书链通常假设验证方已经拥有并信任根证书。 
+> 如何判断根证书对中间证书进行过签名?
+
 
 
 
